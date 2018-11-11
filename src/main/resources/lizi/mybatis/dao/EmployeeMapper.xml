@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="lizi.mybatis.dao.EmployeeMapper">
+
+    <!--
+    eviction:回收策略 LRU(default) FIFO SOFT WEAK
+    flushInterval:缓存多久清空一次 默认不清空 可以设置一个毫秒级
+    readOnly:是否只读 true(缓存中加快速度 不安全，速度快)  false(默认  可能修改，序列化&反序列化 安全，速度慢)
+    size:缓存存放多少个元素
+    type:指定自定义缓存的全类名: 实现Cache接口即可
+    -->
+    <!--<cache eviction="FIFO" flushInterval="60000" readOnly="false" size="1024" ></cache>-->
+    <cache type="org.mybatis.caches.ehcache.EhcacheCache">
+
+    </cache>
+    <!--
+    namespace: ~~ / 接口：指定为接口的全类名
+    id: 标识     / 方法
+    resultType: 类型
+    #{}: 参数取得id值
+    -->
+    <select id="getEmpById" resultType="emp" databaseId="mysql"
+        useCache="true" flushCache="true">
+        select * from tbl_employee where id = #{id}
+    </select>
+
+    <!-- mysql支持自增主键，自增主键值的获取；maybatis也是利用statement.getGenreatedKeys(),
+        keyPropert讲这个值封装
+     -->
+    <insert id="addEmp" parameterType="lizi.mybatis.bean.Employee"
+        useGeneratedKeys="true" keyProperty="id" databaseId="mysql">
+        insert into tbl_employee(last_name,email,gender) values
+        (#{lastName},#{email},#{gender})
+    </insert>
+
+    <update id="updateEmp" databaseId="mysql">
+        UPDATE tbl_employee
+        set last_name=#{lastName},email=#{email},gender=#{gender}
+        where id=#{id}
+    </update>
+
+    <delete id="deleteEmpById" databaseId="mysql">
+        DELETE from tbl_employee where id=#{id}
+    </delete>
+
+
+    <!--<select id="getEmpByIdAndLastName" resultType="lizi.mybatis.bean.Employee">-->
+        <!--select * from tbl_employee where id=#{param1} and last_name=#{param2}-->
+    <!--</select>-->
+
+    <select id="getEmpByIdAndLastName" resultType="lizi.mybatis.bean.Employee">
+        select * from tbl_employee where id=#{id} and last_name=#{lastName}
+    </select>
+
+    <select id="getEmpByMap" resultType="lizi.mybatis.bean.Employee">
+       select * from ${tableName} where id=#{id} and last_name=#{lastName}
+    </select>
+
+
+    <select id="getEmpsByLastNameLike" resultType="lizi.mybatis.bean.Employee">
+        select * from tbl_employee where last_name like #{lastName}
+    </select>
+
+    <select id="getEmpByIdReturnMap" resultType="map">
+        select * from tbl_employee where id = #{id}
+    </select>
+
+    <select id="getEmpByLastNameLikeReturnMap" resultType="lizi.mybatis.bean.Employee">
+        select * from tbl_employee where last_name like #{lastName}
+    </select>
+    
+    
+
+
+</mapper>

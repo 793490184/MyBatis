@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="lizi.mybatis.dao.EmployeeMapperPlus">
+    <!--  public Employee getEmpById(Integer id); -->
+
+    <!-- 自定义 -->
+    <resultMap id="MySimpleEmp" type="lizi.mybatis.bean.Employee">
+        <!--
+        指定主键列的封装规则
+        id定义主键会有优化
+        column 指定哪一列
+        property 指定对应的javaBean属性
+         -->
+        <id column="id" property="id"/>
+        <!--result 定义普通列封装规则 -->
+        <result  column="last_name" property="lastName"/>
+        <!-- 其他不指定列自动封装，推荐 写resultMap 都写一下-->
+        <result column="email" property="email"/>
+        <result column="gender" property="gender"/>
+    </resultMap>
+    <select id="getEmpById" resultMap="MySimpleEmp">
+        select * from tbl_employee where id=#{id}
+    </select>
+
+    <!-- 联合查询 -->
+    <resultMap id="MyDiffEmp1" type="lizi.mybatis.bean.Employee">
+        <id column="id" property="id"/>
+        <result column="last_name" property="lastName"/>
+        <result column="gender" property="gender"/>
+        <result column="did" property="dept.id"/>
+        <result column="dept_name" property="dept.departName"/>
+    </resultMap>
+
+    <resultMap id="MyDiffEmp2" type="lizi.mybatis.bean.Employee">
+        <id column="id" property="id"/>
+        <result column="last_name" property="lastName"/>
+        <result column="gender" property="gender"/>
+        <!-- association指定联合的javaBean对象
+        association property="dept" 指定联合对象 不可以省略
+        -->
+        <association property="dept" javaType="lizi.mybatis.bean.Department">
+            <id column="did" property="id"/>
+            <result column="dept_name" property="departName"/>
+        </association>
+    </resultMap>
+
+    <select id="getEmpAndDept" resultMap="MyDiffEmp1">
+        select e.id id,e.last_name last_name,e.gender gender,e.d_id d_id,
+        d.id did,d.dept_name dept_name
+        from tbl_employee e,tbl_dept d
+        where e.d_id=d.id and e.id=#{id};
+    </select>
+
+    <!--
+        1 id -> did/dept.id
+        2 dept.id -> info(dept)
+        3 部门设置到员工中
+    -->
+    <resultMap id="getEmpByStep" type="lizi.mybatis.bean.Employee">
+        <id column="id" property="id"/>
+        <result column="last_name" property="lastName"/>
+        <result column="email" property="email"/>
+        <result column="gender" property="gender"/>
+        <!--
+        定义关联的对象
+        select : 表明当前属性调用select指定的方法查出的结果
+        column : 指定将哪一列的值传给这个方法
+
+        1 select ...
+        2 column 指定哪一列的值传给这个方法
+        -->
+        <association property="dept" select="lizi.mybatis.dao.DepartmentMapper.getDeptById"
+        column="d_id">
+
+        </association>
+    </resultMap>
+
+    <!--public Employee getEmpByIdStep(Integer id);  MyEmpDis getEmpByStep-->
+    <select id="getEmpByIdStep" resultMap="MyEmpDis">
+        select * from tbl_employee where id=#{id}
+    </select>
+
+    <!--public List<Employee> getEmpsByDeptId(Integer deptId);-->
+    <select id="getEmpsByDeptId" resultType="lizi.mybatis.bean.Employee">
+        select * from tbl_employee where d_id=#{deptId}
+    </select>
+
+
+    <!--<select id="getEmpById" resultType="emp">-->
+        <!--select * from tbl_employee where id=#{id}-->
+    <!--</select>-->
+
+    <resultMap id="MyEmpDis" type="lizi.mybatis.bean.Employee">
+        <id column="id" property="id"/>
+        <result column="last_name" property="lastName"/>
+        <result column="email" property="email"/>
+        <result column="gender" property="gender"/>
+
+        <discriminator javaType="string" column="gender">
+            <!--resultType不能缺少-->
+            <case value="0" resultType="lizi.mybatis.bean.Employee">
+                <association property="dept"
+                             select="lizi.mybatis.dao.DepartmentMapper.getDeptById"
+                             column="d_id">
+
+                </association>
+            </case>
+            <case value="1" resultType="lizi.mybatis.bean.Employee">
+                <id column="id" property="id"/>
+                <result column="last_name" property="lastName"/>
+                <result column="last_name" property="email"/>
+                <result column="gender" property="gender"/>
+            </case>
+        </discriminator>
+
+
+    </resultMap>
+
+
+</mapper>

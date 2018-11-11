@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="lizi.mybatis.dao.EmployeeMapperDynamicSQL">
+    <!--if choose(when,otherwise) trim(where,set) foreach-->
+
+    <!--查询员工，要求：携带哪个字段查询条件就带上这个字段的值 -->
+    <!--public List<Employee> getEmpsByConditionIf(Employee employee);-->
+    <select id="getEmpsByConditionIf" resultType="lizi.mybatis.bean.Employee">
+        select * from tbl_employee
+        <where>
+            <!--OGNL 使用-->
+            <if test="id!=null">
+                id=#{id}
+            </if>
+            <if test="lastName!=null and lastName!=''">
+                and last_name like #{lastName}
+            </if>
+            <if test="email!=null and email.trim()!=&quot;&quot;">
+                and email=#{email}
+            </if>
+            <!-- OGNL会进行字符串与数字的转换判断 -->
+            <if test="gender==0 or gender == 1">
+                and gender=#{gender}
+            </if>
+        </where>
+    </select>
+
+
+    <!--public List<Employee> getEmpsByConditionTrim(Employee employee);-->
+    <select id="getEmpsByConditionTrim" resultType="lizi.mybatis.bean.Employee">
+        select * from tbl_employee
+        <trim prefix="where" suffixOverrides="and">
+            <!--OGNL 使用-->
+            <if test="id!=null">
+                id=#{id} and
+            </if>
+            <if test="lastName!=null and lastName!=''">
+                last_name like #{lastName} and
+            </if>
+            <if test="email!=null and email.trim()!=&quot;&quot;">
+                email=#{email} and
+            </if>
+            <!-- OGNL会进行字符串与数字的转换判断 -->
+            <if test="gender==0 or gender == 1">
+                gender=#{gender}
+            </if>
+        </trim>
+    </select>
+
+    <!--public List<Employee> getEmpsByConditionChoose(Employee employee);-->
+    <select id="getEmpsByConditionChoose" resultType="lizi.mybatis.bean.Employee">
+        select * from tbl_employee
+        <where>
+            <choose>
+                <when test="id!=null">
+                    id=#{id}
+                </when>
+                <when test="lastName!=null">
+                    last_name like #{lastName}
+                </when>
+                <when test="email!=null">
+                    email = #{email}
+                </when>
+                <otherwise>
+                    gender = 0
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+
+    <!--public void updateEmp(Employee employee);-->
+    <update id="updateEmp">
+        <!--set-->
+        update tbl_employee
+        <set>
+            <if test="lastName!=null">
+                last_name=#{lastName},
+            </if>
+            <if test="email!=null">
+                email=#{email},
+            </if>
+            <if test="gender!=null">
+                gender=#{gender},
+            </if>
+        </set>
+        where id=#{id}
+        <!--trim-->
+        <!--update tbl_employee-->
+        <!--<trim prefix="set" suffixOverrides=",">-->
+        <!--<if test="lastName!=null">-->
+        <!--last_name=#{lastName},-->
+        <!--</if>-->
+        <!--<if test="email!=null">-->
+        <!--email=#{email},-->
+        <!--</if>-->
+        <!--<if test="gender!=null">-->
+        <!--gender=#{gender},-->
+        <!--</if>-->
+        <!--</trim>-->
+        <!--where id=#{id}-->
+    </update>
+
+    <!--public List<Employee> getEmpByConditionForeach(List<Integer> ids);-->
+    <select id="getEmpByConditionForeach" resultType="lizi.mybatis.bean.Employee">
+        select * from tbl_employee
+        <!--
+        collection:指定遍历的集合
+            list类型的参数->map map的key叫list
+        item:讲当前的遍历元素赋值给指定位置
+        separator:分隔符
+        open:  close:
+        index: 索引 遍历list是索引
+                    遍历map的时候index表示就是map的key，item就是map的值
+
+        #{变量名} 动态取出
+
+        -->
+        <foreach collection="ids" item="item_id" separator=","
+                 open="where id in (" close=")">
+            #{item_id}
+        </foreach>
+    </select>
+
+    <!--public void addEmps(@Param("emps") List<Employee> emps);-->
+
+    <insert id="addEmps">
+        <!--collection insert into values(),(),()......-->
+        insert into tbl_employee(
+            <include refid="insertColumn"/>
+        )
+        values
+        <foreach collection="emps" item="emp" separator=",">
+            (#{emp.lastName},#{emp.email},#{emp.gender},#{emp.dept.id})
+        </foreach>
+
+        <!--many insert...   allowMultiQueries=true  -->
+        <!--<foreach collection="emps" item="emp" separator=";">-->
+            <!--insert into tbl_employee(last_name,email,gender,d_id)-->
+            <!--values (#{emp.lastName},#{emp.email},#{emp.gender},#{emp.dept.id})-->
+        <!--</foreach>-->
+
+    </insert>
+
+    <!--public List<Employee> getEmpsTestInnerParameter(Employee employee);-->
+    <select id="getEmpsTestInnerParameter" resultType="lizi.mybatis.bean.Employee">
+        <bind name="_lastName" value="'%' + lastName + '%'"/>
+        <if test="_databaseId == 'mysql'">
+            select * from tbl_employee
+            <if test="_parameter!=null">
+                where last_name like #{_lastName}
+            </if>
+        </if>
+    </select>
+
+    <sql id="insertColumn">
+        <if test="_databaseId=='mysql'">
+            last_name,email,gender,d_id
+        </if>
+    </sql>
+
+</mapper>

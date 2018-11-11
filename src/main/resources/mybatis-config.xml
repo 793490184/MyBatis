@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+
+
+    <!-- import
+    resources : class ,..
+    url: net
+      -->
+    <properties resource="dbconfig.properties"></properties>
+
+
+    <!-- setting -->
+    <settings>
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <setting name="jdbcTypeForNull" value="NULL"/>
+        <setting name="cacheEnabled" value="true"/>
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <setting name="aggressiveLazyLoading" value="false"/>
+    </settings>
+
+    <!-- typeAliases -->
+    <typeAliases>
+        <!-- 默认 employee
+                alias..
+           -->
+        <!--<typeAlias type="my02.cn.mybatis.bean.Employee" alias="emp"/>-->
+        <!-- package 包起别名 -->
+        <package name="lizi.mybatis.bean"/>
+
+    </typeAliases>
+
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="${jdbc.driver}"/>
+                <property name="url" value="${jdbc.url}"/>
+                <property name="username" value="${jdbc.username}"/>
+                <property name="password" value="${jdbc.password}"/>
+            </dataSource>
+        </environment>
+        <!-- 配置其他 -->
+        <!--<environment id="">-->
+            <!--<transactionManager type=""></transactionManager>-->
+            <!--<dataSource type=""></dataSource>-->
+        <!--</environment>-->
+    </environments>
+
+
+    <databaseIdProvider type="DB_VENDOR">
+        <property name="MySQL" value="mysql"/>
+    </databaseIdProvider>
+
+    <mappers>
+        <!--  注册 -->
+        <!--<mapper resource="my02/conf/EmployeeMapper.xml"/>-->
+        <!--<mapper class="my02.cn.mybatis.dao.EmployeeMapper"/>-->
+        <!--<mapper class="my02.cn.mybatis.dao.EmployeeMapperAnnotation"/>-->
+        <package name="lizi.mybatis.dao"/>
+    </mappers>
+
+
+</configuration>
